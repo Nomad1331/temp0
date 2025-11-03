@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { BottomNav } from "@/components/BottomNav";
+import { SettingsButton } from "@/components/SettingsButton";
 import { Trophy, Crown, Medal } from "lucide-react";
 import { getLeaderboard, getUsername } from "@/lib/storage";
 import { LeaderboardEntry } from "@/types/poop";
@@ -47,7 +48,9 @@ const Leaderboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-24 relative">
+      <SettingsButton />
+      
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">

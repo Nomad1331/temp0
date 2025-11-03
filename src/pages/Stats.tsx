@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BottomNav } from "@/components/BottomNav";
+import { SettingsButton } from "@/components/SettingsButton";
 import { StatCard } from "@/components/StatCard";
 import { Trophy, Clock, Star, Target, TrendingUp, Calendar, Users } from "lucide-react";
 import { getLogs, getStats } from "@/lib/storage";
@@ -57,7 +58,9 @@ const Stats = () => {
   const maxCount = Math.max(...Object.values(bristolDistribution), 1);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-24 relative">
+      <SettingsButton />
+      
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

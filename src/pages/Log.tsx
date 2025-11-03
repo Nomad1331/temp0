@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogModal } from "@/components/LogModal";
 import { BottomNav } from "@/components/BottomNav";
+import { SettingsButton } from "@/components/SettingsButton";
 
 const Log = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -21,7 +22,8 @@ const Log = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-24 relative">
+      <SettingsButton />
       <LogModal
         open={modalOpen}
         onOpenChange={handleModalClose}

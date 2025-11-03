@@ -33,6 +33,9 @@ const locations = [
 export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
   const [duration, setDuration] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [manualMode, setManualMode] = useState(false);
+  const [manualMinutes, setManualMinutes] = useState("");
+  const [manualSeconds, setManualSeconds] = useState("");
   const [bristolType, setBristolType] = useState<number>(4);
   const [satisfaction, setSatisfaction] = useState<number>(3);
   const [urgency, setUrgency] = useState<number>(3);
@@ -56,14 +59,23 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
   };
 
   const handleSubmit = async () => {
-    if (duration === 0) {
+    let finalDuration = duration;
+    
+    // If in manual mode, calculate duration from inputs
+    if (manualMode) {
+      const mins = parseInt(manualMinutes) || 0;
+      const secs = parseInt(manualSeconds) || 0;
+      finalDuration = mins * 60 + secs;
+    }
+    
+    if (finalDuration === 0) {
       toast.error("Please record a duration");
       return;
     }
 
     const result = await addLog({
       timestamp: Date.now(),
-      duration,
+      duration: finalDuration,
       bristolType,
       satisfaction,
       urgency,
@@ -84,6 +96,9 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
   const resetForm = () => {
     setDuration(0);
     setIsTimerRunning(false);
+    setManualMode(false);
+    setManualMinutes("");
+    setManualSeconds("");
     setBristolType(4);
     setSatisfaction(3);
     setUrgency(3);
@@ -103,23 +118,68 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
         <div className="space-y-6 pt-4">
           {/* Timer */}
           <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Duration
-            </Label>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-2xl font-mono font-bold text-center">
-                {formatTime(duration)}
-              </div>
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Duration
+              </Label>
               <Button
                 type="button"
-                variant={isTimerRunning ? "destructive" : "default"}
-                onClick={() => setIsTimerRunning(!isTimerRunning)}
-                className="w-24"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setManualMode(!manualMode);
+                  setIsTimerRunning(false);
+                }}
+                className="text-xs"
               >
-                {isTimerRunning ? "Stop" : "Start"}
+                {manualMode ? "Use Stopwatch" : "Enter Manually"}
               </Button>
             </div>
+
+            {!manualMode ? (
+              <div className="flex items-center gap-3">
+                <div className="flex-1 bg-muted rounded-lg px-4 py-3 text-2xl font-mono font-bold text-center">
+                  {formatTime(duration)}
+                </div>
+                <Button
+                  type="button"
+                  variant={isTimerRunning ? "destructive" : "default"}
+                  onClick={() => setIsTimerRunning(!isTimerRunning)}
+                  className="w-24"
+                >
+                  {isTimerRunning ? "Stop" : "Start"}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 space-y-1">
+                  <Input
+                    type="number"
+                    placeholder="Minutes"
+                    value={manualMinutes}
+                    onChange={(e) => setManualMinutes(e.target.value)}
+                    min="0"
+                    max="60"
+                    className="text-center"
+                  />
+                  <p className="text-xs text-muted-foreground text-center">minutes</p>
+                </div>
+                <span className="text-2xl font-bold">:</span>
+                <div className="flex-1 space-y-1">
+                  <Input
+                    type="number"
+                    placeholder="Seconds"
+                    value={manualSeconds}
+                    onChange={(e) => setManualSeconds(e.target.value)}
+                    min="0"
+                    max="59"
+                    className="text-center"
+                  />
+                  <p className="text-xs text-muted-foreground text-center">seconds</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Bristol Scale */}
