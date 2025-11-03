@@ -1,14 +1,20 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { BottomNav } from "@/components/BottomNav";
 import { StatCard } from "@/components/StatCard";
-import { Trophy, Clock, Star, Target, TrendingUp, Calendar } from "lucide-react";
+import { Trophy, Clock, Star, Target, TrendingUp, Calendar, Users } from "lucide-react";
 import { getLogs, getStats } from "@/lib/storage";
+import { getUserBadges, getReferralStats } from "@/lib/referrals";
+import { supabase } from "@/integrations/supabase/client";
 import { UserStats } from "@/types/poop";
+import type { UserBadge } from "@/lib/referrals";
 
 const Stats = () => {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [bristolDistribution, setBristolDistribution] = useState<Record<number, number>>({});
+  const [badges, setBadges] = useState<UserBadge[]>([]);
+  const [referralCount, setReferralCount] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -22,6 +28,18 @@ const Stats = () => {
         distribution[log.bristolType] = (distribution[log.bristolType] || 0) + 1;
       });
       setBristolDistribution(distribution);
+
+      // Load badges and referral stats
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const userBadges = await getUserBadges(user.id);
+        setBadges(userBadges);
+        
+        const refStats = await getReferralStats(user.id);
+        if (refStats) {
+          setReferralCount(refStats.completedReferrals);
+        }
+      }
     };
     
     loadData();
@@ -73,6 +91,35 @@ const Stats = () => {
             subtitle="out of 5"
           />
         </div>
+
+        {/* Referral Stats */}
+        <Card className="p-6 mb-8 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border-teal-500/20">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5 text-teal-400" />
+            Friends Recruited
+          </h2>
+          <div className="text-center mb-4">
+            <p className="text-4xl font-bold text-foreground">{referralCount}</p>
+            <p className="text-sm text-muted-foreground mt-1">Total referrals completed</p>
+          </div>
+          
+          {badges.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Earned Badges</p>
+              <div className="flex flex-wrap gap-2">
+                {badges.map((userBadge) => (
+                  <Badge
+                    key={userBadge.badge.id}
+                    variant="secondary"
+                    className="text-base px-3 py-1 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border-teal-500/30"
+                  >
+                    {userBadge.badge.icon} {userBadge.badge.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
 
         {/* Bristol Scale Distribution */}
         <Card className="p-6 mb-8">

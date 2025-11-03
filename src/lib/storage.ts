@@ -22,9 +22,14 @@ export const setUsername = async (username: string): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
   
+  const referralCode = username.toLowerCase().replace(/\s+/g, '');
+  
   await (supabase as any)
     .from('profiles')
-    .update({ username })
+    .update({ 
+      username,
+      referral_code: referralCode 
+    })
     .eq('id', user.id);
 };
 
@@ -77,6 +82,18 @@ export const addLog = async (log: Omit<PoopLog, "id">): Promise<PoopLog | null> 
   if (error || !data) {
     console.error('Error adding log:', error);
     return null;
+  }
+  
+  // Check if this is the user's first log and complete referral if so
+  const { data: logCount } = await (supabase as any)
+    .from('logs')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+  
+  if (logCount === 1) {
+    // This is the first log, complete the referral
+    const { completeReferral } = await import('./referrals');
+    await completeReferral(user.id);
   }
   
   const logData = data as any;

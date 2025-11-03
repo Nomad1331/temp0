@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
+import { createReferral } from '@/lib/referrals';
 
 const emailSchema = z.string().trim().email({ message: 'Invalid email address' }).max(255);
 const passwordSchema = z.string().min(6, { message: 'Password must be at least 6 characters' }).max(100);
@@ -17,8 +19,17 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
   const { signUp, signIn } = useAuth();
   const navigate = useNavigate();
+  const referralCode = searchParams.get('ref');
+
+  useEffect(() => {
+    // Store referral code in localStorage to use after signup
+    if (referralCode) {
+      localStorage.setItem('flushhub_referral', referralCode);
+    }
+  }, [referralCode]);
 
   const validateInputs = () => {
     try {
@@ -83,9 +94,20 @@ const Auth = () => {
           }
           return;
         }
+
+        // Handle referral if exists
+        const storedReferral = localStorage.getItem('flushhub_referral');
+        if (storedReferral) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await createReferral(storedReferral, user.id);
+            localStorage.removeItem('flushhub_referral');
+          }
+        }
+
         toast({
           title: 'Account Created',
-          description: 'Check your email to verify your account.',
+          description: 'Welcome to FlushHub! You can now log in.',
         });
         setIsLogin(true);
       }

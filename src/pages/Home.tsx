@@ -6,21 +6,55 @@ import { UsernameModal } from "@/components/UsernameModal";
 import { SettingsButton } from "@/components/SettingsButton";
 import { StatCard } from "@/components/StatCard";
 import { BottomNav } from "@/components/BottomNav";
-import { PlusCircle, Clock, TrendingUp, Calendar, Flame } from "lucide-react";
+import { ReferralModal } from "@/components/ReferralModal";
+import { PlusCircle, Clock, TrendingUp, Calendar, Flame, Users } from "lucide-react";
 import { getLogs, getStats } from "@/lib/storage";
+import { getReferralStats } from "@/lib/referrals";
 import { supabase } from "@/integrations/supabase/client";
 import { PoopLog, UserStats } from "@/types/poop";
 
 const Home = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [usernameModalOpen, setUsernameModalOpen] = useState(false);
+  const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [recentLogs, setRecentLogs] = useState<PoopLog[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [referralCode, setReferralCode] = useState("");
+  const [referralStats, setReferralStats] = useState({
+    completedReferrals: 0,
+    nextBadgeName: undefined as string | undefined,
+    nextBadgeIcon: undefined as string | undefined,
+    nextBadgeThreshold: undefined as number | undefined,
+  });
 
   const loadData = async () => {
     const logs = await getLogs();
     setRecentLogs(logs.slice(0, 5));
     setStats(await getStats());
+    
+    // Load referral data
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await (supabase as any)
+        .from('profiles')
+        .select('referral_code')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (profile?.referral_code) {
+        setReferralCode(profile.referral_code);
+      }
+      
+      const refStats = await getReferralStats(user.id);
+      if (refStats) {
+        setReferralStats({
+          completedReferrals: refStats.completedReferrals,
+          nextBadgeName: refStats.nextBadgeName,
+          nextBadgeIcon: refStats.nextBadgeIcon,
+          nextBadgeThreshold: refStats.nextBadgeThreshold,
+        });
+      }
+    }
   };
 
   useEffect(() => {
@@ -109,6 +143,21 @@ const Home = () => {
           </div>
         )}
 
+        {/* Invite Friends Button */}
+        <Button
+          onClick={() => setReferralModalOpen(true)}
+          variant="outline"
+          className="w-full mb-8 h-14 border-2 border-primary/20 hover:border-primary/40 bg-gradient-to-r from-primary/5 to-accent/5"
+        >
+          <Users className="w-5 h-5 mr-2" />
+          <div className="flex-1 text-left">
+            <div className="font-semibold">Invite Friends & Earn Rewards</div>
+            <div className="text-xs text-muted-foreground">
+              {referralStats.completedReferrals} friend{referralStats.completedReferrals !== 1 ? 's' : ''} recruited
+            </div>
+          </div>
+        </Button>
+
         {/* Recent Activity */}
         <div className="mb-4">
           <h2 className="text-xl font-bold mb-4">Recent Activity</h2>
@@ -156,6 +205,13 @@ const Home = () => {
         open={modalOpen}
         onOpenChange={setModalOpen}
         onLogAdded={loadData}
+      />
+
+      <ReferralModal
+        open={referralModalOpen}
+        onOpenChange={setReferralModalOpen}
+        referralCode={referralCode}
+        stats={referralStats}
       />
 
       <BottomNav />
