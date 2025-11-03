@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext"; // 👈 added
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -26,8 +28,14 @@ const bristolTypes = [
 ];
 
 const locations = [
-  "Home", "Work", "Friend's House", "Restaurant", "Public Restroom", 
-  "Hotel", "Gym", "Other"
+  "Home",
+  "Work",
+  "Friend's House",
+  "Restaurant",
+  "Public Restroom",
+  "Hotel",
+  "Gym",
+  "Other",
 ];
 
 export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
@@ -42,11 +50,14 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
   const [location, setLocation] = useState<string>("Home");
   const [notes, setNotes] = useState("");
 
+  const { user } = useAuth(); // 👈 check logged-in user
+  const navigate = useNavigate(); // 👈 for redirect
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isTimerRunning) {
       interval = setInterval(() => {
-        setDuration(prev => prev + 1);
+        setDuration((prev) => prev + 1);
       }, 1000);
     }
     return () => clearInterval(interval);
@@ -55,19 +66,26 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleSubmit = async () => {
+    // 👇 block unauthenticated users
+    if (!user) {
+      toast("Please log in to submit a log! 🪠");
+      onOpenChange(false);
+      navigate("/auth");
+      return;
+    }
+
     let finalDuration = duration;
-    
-    // If in manual mode, calculate duration from inputs
+
     if (manualMode) {
       const mins = parseInt(manualMinutes) || 0;
       const secs = parseInt(manualSeconds) || 0;
       finalDuration = mins * 60 + secs;
     }
-    
+
     if (finalDuration === 0) {
       toast.error("Please record a duration");
       return;
@@ -163,7 +181,9 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
                     max="60"
                     className="text-center"
                   />
-                  <p className="text-xs text-muted-foreground text-center">minutes</p>
+                  <p className="text-xs text-muted-foreground text-center">
+                    minutes
+                  </p>
                 </div>
                 <span className="text-2xl font-bold">:</span>
                 <div className="flex-1 space-y-1">
@@ -176,7 +196,9 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
                     max="59"
                     className="text-center"
                   />
-                  <p className="text-xs text-muted-foreground text-center">seconds</p>
+                  <p className="text-xs text-muted-foreground text-center">
+                    seconds
+                  </p>
                 </div>
               </div>
             )}
@@ -185,12 +207,15 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
           {/* Bristol Scale */}
           <div className="space-y-2">
             <Label>Bristol Stool Scale</Label>
-            <Select value={bristolType.toString()} onValueChange={(v) => setBristolType(parseInt(v))}>
+            <Select
+              value={bristolType.toString()}
+              onValueChange={(v) => setBristolType(parseInt(v))}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {bristolTypes.map(type => (
+                {bristolTypes.map((type) => (
                   <SelectItem key={type.value} value={type.value.toString()}>
                     {type.label} - {type.description}
                   </SelectItem>
@@ -206,7 +231,7 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
               Satisfaction
             </Label>
             <div className="flex gap-2 justify-center py-2">
-              {[1, 2, 3, 4, 5].map(rating => (
+              {[1, 2, 3, 4, 5].map((rating) => (
                 <button
                   key={rating}
                   type="button"
@@ -232,7 +257,7 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
               Urgency Level
             </Label>
             <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map(level => (
+              {[1, 2, 3, 4, 5].map((level) => (
                 <button
                   key={level}
                   type="button"
@@ -260,7 +285,7 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {locations.map(loc => (
+                {locations.map((loc) => (
                   <SelectItem key={loc} value={loc}>
                     {loc}
                   </SelectItem>
