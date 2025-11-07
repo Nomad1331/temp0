@@ -48,88 +48,89 @@ const Leaderboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-24 relative">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary/5 via-background to-background pb-24 relative">
       <SettingsButton />
       
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Trophy className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold">Leaderboard</h1>
-          </div>
-          <p className="text-muted-foreground">Global Top Performers</p>
+          <div className="text-6xl mb-3 animate-float">🏆</div>
+          <h1 className="text-4xl font-black mb-2 bg-gradient-to-r from-secondary via-primary to-accent bg-clip-text text-transparent">
+            Hall of Flush
+          </h1>
+          <p className="text-lg font-bold text-muted-foreground">Who's sitting on the throne?</p>
         </div>
 
         {/* Top 3 Podium */}
-        <div className="grid grid-cols-3 gap-2 mb-8 items-end">
+        <div className="grid grid-cols-3 gap-3 mb-8 items-end">
           {/* 2nd Place */}
           {entries[1] && (
-            <Card className={`p-4 text-center bg-gradient-to-b ${getRankColor(2)}`}>
-              <Medal className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-3xl font-bold mb-1">2</p>
-              <p className="text-sm font-medium truncate">{entries[1].username}</p>
-              <p className="text-xs text-muted-foreground">{entries[1].count} logs</p>
+            <Card className="p-5 text-center bg-gradient-to-br from-slate-400/20 to-slate-500/10 border-slate-400/40 hover:scale-105 transition-all shadow-[0_0_20px_rgba(148,163,184,0.3)]">
+              <div className="text-4xl mb-2">🥈</div>
+              <p className="text-4xl font-black mb-2">2</p>
+              <p className="text-sm font-bold truncate">{entries[1].username}</p>
+              <p className="text-2xl font-black mt-2 text-slate-400">{entries[1].count}</p>
             </Card>
           )}
 
           {/* 1st Place */}
           {entries[0] && (
-            <Card className={`p-4 text-center bg-gradient-to-b ${getRankColor(1)} transform scale-105`}>
-              <Crown className="w-10 h-10 text-secondary mx-auto mb-2" />
-              <p className="text-4xl font-bold mb-1">1</p>
-              <p className="text-sm font-medium truncate">{entries[0].username}</p>
-              <p className="text-xs text-muted-foreground">{entries[0].count} logs</p>
+            <Card className="p-6 text-center bg-gradient-to-br from-secondary via-secondary/80 to-secondary/60 border-secondary shadow-[var(--shadow-gold)] transform scale-110 hover:scale-115 transition-all animate-pulse-glow">
+              <div className="text-5xl mb-2">👑</div>
+              <p className="text-5xl font-black mb-2">1</p>
+              <p className="text-base font-black truncate">{entries[0].username}</p>
+              <p className="text-3xl font-black mt-2">{entries[0].count}</p>
             </Card>
           )}
 
           {/* 3rd Place */}
           {entries[2] && (
-            <Card className={`p-4 text-center bg-gradient-to-b ${getRankColor(3)}`}>
-              <Medal className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-              <p className="text-3xl font-bold mb-1">3</p>
-              <p className="text-sm font-medium truncate">{entries[2].username}</p>
-              <p className="text-xs text-muted-foreground">{entries[2].count} logs</p>
+            <Card className="p-5 text-center bg-gradient-to-br from-amber-600/20 to-amber-700/10 border-amber-600/40 hover:scale-105 transition-all shadow-[0_0_20px_rgba(217,119,6,0.3)]">
+              <div className="text-4xl mb-2">🥉</div>
+              <p className="text-4xl font-black mb-2">3</p>
+              <p className="text-sm font-bold truncate">{entries[2].username}</p>
+              <p className="text-2xl font-black mt-2 text-amber-600">{entries[2].count}</p>
             </Card>
           )}
         </div>
 
         {/* Full Leaderboard */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           {entries.map((entry) => {
             const isCurrentUser = entry.username === currentUser;
+            const medal = entry.rank === 1 ? "👑" : entry.rank === 2 ? "🥈" : entry.rank === 3 ? "🥉" : "💩";
             
             return (
               <Card
                 key={entry.rank}
                 className={`p-4 bg-gradient-to-r ${getRankColor(entry.rank)} ${
-                  isCurrentUser ? "ring-2 ring-primary" : ""
-                } transition-all hover:shadow-md`}
+                  isCurrentUser ? "ring-4 ring-primary shadow-[var(--shadow-teal)] scale-105" : ""
+                } hover:scale-[1.02] transition-all hover:shadow-[var(--shadow-card)]`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-12">
-                    {getRankIcon(entry.rank)}
+                  <div className="flex items-center justify-center w-14">
+                    <span className="text-3xl">{medal}</span>
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-bold truncate">
+                      <p className="font-black text-lg truncate">
                         {entry.username}
                       </p>
                       {isCurrentUser && (
-                        <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
-                          You
+                        <span className="text-xs font-black bg-gradient-to-r from-primary to-accent text-white px-3 py-1 rounded-full">
+                          YOU
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm font-bold text-muted-foreground">
                       Rank #{entry.rank}
                     </p>
                   </div>
 
                   <div className="text-right">
-                    <p className="text-2xl font-bold">{entry.count}</p>
-                    <p className="text-xs text-muted-foreground">logs</p>
+                    <p className="text-3xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{entry.count}</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">drops</p>
                   </div>
                 </div>
               </Card>
@@ -137,8 +138,8 @@ const Leaderboard = () => {
           })}
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          Keep logging to climb the ranks! 🚀
+        <p className="text-center text-base font-bold text-muted-foreground mt-8">
+          💪 Keep dropping to level up!
         </p>
       </div>
 
