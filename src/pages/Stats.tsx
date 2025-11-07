@@ -58,14 +58,15 @@ const Stats = () => {
   const maxCount = Math.max(...Object.values(bristolDistribution), 1);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-24 relative">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent/5 via-background to-background pb-24 relative">
       <SettingsButton />
       
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Your Statistics</h1>
-          <p className="text-muted-foreground">Personal performance metrics</p>
+        <div className="mb-8 text-center">
+          <div className="text-6xl mb-3 animate-float">📊</div>
+          <h1 className="text-4xl font-black mb-2 bg-gradient-to-r from-accent via-primary to-secondary bg-clip-text text-transparent">Your Stats</h1>
+          <p className="text-lg font-bold text-muted-foreground">How's your flow?</p>
         </div>
 
         {/* Overall Stats */}
@@ -162,13 +163,13 @@ const Stats = () => {
         </Card>
 
         {/* Streak Info */}
-        <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
+        <Card className="p-8 bg-gradient-to-br from-orange-500/20 via-red-500/20 to-orange-500/20 border-orange-500/40 shadow-[0_0_40px_rgba(249,115,22,0.3)] hover:scale-105 transition-all">
           <div className="text-center">
-            <Calendar className="w-12 h-12 text-primary mx-auto mb-3" />
-            <h3 className="text-2xl font-bold mb-1">{stats.currentStreak} Days</h3>
-            <p className="text-sm text-muted-foreground">Current Streak</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Keep logging daily to maintain your streak! 🔥
+            <div className="text-7xl mb-3 animate-float">🔥</div>
+            <h3 className="text-5xl font-black mb-2 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">{stats.currentStreak}</h3>
+            <p className="text-xl font-black text-muted-foreground mb-3">DAY STREAK</p>
+            <p className="text-base font-bold text-muted-foreground">
+              You're on fire! Keep it going! 💪
             </p>
           </div>
         </Card>
