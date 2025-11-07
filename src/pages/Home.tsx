@@ -7,9 +7,11 @@ import { SettingsButton } from "@/components/SettingsButton";
 import { StatCard } from "@/components/StatCard";
 import { BottomNav } from "@/components/BottomNav";
 import { ReferralModal } from "@/components/ReferralModal";
+import { LeaderboardJoinModal } from "@/components/LeaderboardJoinModal";
 import { PlusCircle, Clock, TrendingUp, Calendar, Flame, Users } from "lucide-react";
 import { getLogs, getStats } from "@/lib/storage";
 import { getReferralStats } from "@/lib/referrals";
+import { hasJoinedLeaderboard, saveLeaderboardInfo } from "@/lib/leaderboard";
 import { supabase } from "@/integrations/supabase/client";
 import { PoopLog, UserStats } from "@/types/poop";
 
@@ -17,9 +19,11 @@ const Home = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [usernameModalOpen, setUsernameModalOpen] = useState(false);
   const [referralModalOpen, setReferralModalOpen] = useState(false);
+  const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
   const [recentLogs, setRecentLogs] = useState<PoopLog[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [referralCode, setReferralCode] = useState("");
+  const [shouldCheckLeaderboard, setShouldCheckLeaderboard] = useState(false);
   const [referralStats, setReferralStats] = useState({
     completedReferrals: 0,
     nextBadgeName: undefined as string | undefined,
@@ -30,7 +34,13 @@ const Home = () => {
   const loadData = async () => {
     const logs = await getLogs();
     setRecentLogs(logs.slice(0, 5));
-    setStats(await getStats());
+    const userStats = await getStats();
+    setStats(userStats);
+
+    // Check if we should show leaderboard modal after first log
+    if (userStats.totalLogs === 1) {
+      setShouldCheckLeaderboard(true);
+    }
     
     // Load referral data
     const { data: { user } } = await supabase.auth.getUser();
@@ -71,6 +81,28 @@ const Home = () => {
     
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    // Show leaderboard modal after first log for non-verified users
+    const checkLeaderboard = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (shouldCheckLeaderboard && !user && !hasJoinedLeaderboard()) {
+        setLeaderboardModalOpen(true);
+        setShouldCheckLeaderboard(false);
+      }
+    };
+    
+    checkLeaderboard();
+  }, [shouldCheckLeaderboard]);
+
+  const handleLeaderboardJoin = (entryId: string, username: string) => {
+    saveLeaderboardInfo(entryId, username);
+    setLeaderboardModalOpen(false);
+  };
+
+  const handleLeaderboardSkip = () => {
+    setLeaderboardModalOpen(false);
+  };
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -222,6 +254,12 @@ const Home = () => {
         onOpenChange={setReferralModalOpen}
         referralCode={referralCode}
         stats={referralStats}
+      />
+
+      <LeaderboardJoinModal
+        open={leaderboardModalOpen}
+        onJoin={handleLeaderboardJoin}
+        onSkip={handleLeaderboardSkip}
       />
 
       <BottomNav />

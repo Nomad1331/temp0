@@ -95,6 +95,13 @@ export const addLog = async (log: Omit<PoopLog, "id">): Promise<PoopLog | null> 
     const { completeReferral } = await import('./referrals');
     await completeReferral(user.id);
   }
+
+  // Update leaderboard stats if user has joined
+  const { getLeaderboardEntryId, updateLeaderboardStats } = await import('./leaderboard');
+  const entryId = getLeaderboardEntryId();
+  if (entryId) {
+    await updateLeaderboardStats(entryId);
+  }
   
   const logData = data as any;
   return {
