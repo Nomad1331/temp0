@@ -8,8 +8,9 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 200 25% 97%;
     --foreground: 200 30% 12%;
+    --background-gradient: linear-gradient(135deg, hsl(200 25% 97%) 0%, hsl(185 25% 96%) 50%, hsl(270 15% 97%) 100%);
 
     --card: 0 0% 100%;
     --card-foreground: 200 30% 12%;
@@ -71,6 +72,7 @@ All colors MUST be HSL.
   .dark {
     --background: 200 35% 8%;
     --foreground: 200 20% 98%;
+    --background-gradient: linear-gradient(135deg, hsl(200 35% 8%) 0%, hsl(185 30% 10%) 50%, hsl(270 25% 9%) 100%);
 
     --card: 200 30% 12%;
     --card-foreground: 200 20% 98%;
@@ -131,7 +133,42 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: var(--background-gradient);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, hsl(var(--teal-bright) / 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite;
+    z-index: 0;
+  }
+  
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -30%;
+    left: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, hsl(var(--purple-fun) / 0.06) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: float 10s ease-in-out infinite reverse;
+    z-index: 0;
+  }
+  
+  #root {
+    position: relative;
+    z-index: 1;
   }
   
   /* Smooth animations */
