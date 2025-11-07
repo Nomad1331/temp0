@@ -70,14 +70,6 @@ export const LogModal = ({ open, onOpenChange, onLogAdded }: LogModalProps) => {
   };
 
   const handleSubmit = async () => {
-    // 👇 block unauthenticated users
-    if (!user) {
-      toast("Please log in to submit a log! 🪠");
-      onOpenChange(false);
-      navigate("/auth");
-      return;
-    }
-
     let finalDuration = duration;
 
     if (manualMode) {

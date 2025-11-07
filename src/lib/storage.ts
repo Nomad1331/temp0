@@ -35,7 +35,27 @@ export const setUsername = async (username: string): Promise<void> => {
 
 export const getLogs = async (): Promise<PoopLog[]> => {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
+  if (!user) {
+    try {
+      const raw = localStorage.getItem('flushhub_logs');
+      const arr: any[] = raw ? JSON.parse(raw) : [];
+      return (arr || [])
+        .map((log: any) => ({
+          id: log.id,
+          timestamp: log.timestamp,
+          bristolType: log.bristolType,
+          duration: log.duration,
+          satisfaction: log.satisfaction,
+          urgency: log.urgency,
+          location: log.location,
+          notes: log.notes,
+        }))
+        .sort((a, b) => b.timestamp - a.timestamp);
+    } catch (e) {
+      console.error('Error reading local logs:', e);
+      return [];
+    }
+  }
   
   const { data, error } = await (supabase as any)
     .from('logs')
@@ -62,8 +82,36 @@ export const getLogs = async (): Promise<PoopLog[]> => {
 
 export const addLog = async (log: Omit<PoopLog, "id">): Promise<PoopLog | null> => {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) {
+    // Anonymous user: store in localStorage
+    const id = typeof crypto !== 'undefined' && (crypto as any).randomUUID ? (crypto as any).randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const newLog: PoopLog = { id, ...log } as PoopLog;
+
+    try {
+      const raw = localStorage.getItem('flushhub_logs');
+      const arr: any[] = raw ? JSON.parse(raw) : [];
+      // Prepend for recency
+      arr.unshift(newLog);
+      localStorage.setItem('flushhub_logs', JSON.stringify(arr));
+    } catch (e) {
+      console.error('Error writing local log:', e);
+    }
+
+    // Update leaderboard stats if user has joined (works without auth via SECURITY DEFINER)
+    try {
+      const { getLeaderboardEntryId, updateLeaderboardStats } = await import('./leaderboard');
+      const entryId = getLeaderboardEntryId();
+      if (entryId) {
+        await updateLeaderboardStats(entryId);
+      }
+    } catch (e) {
+      console.error('Anonymous leaderboard update failed:', e);
+    }
+
+    return newLog;
+  }
   
+  // Authenticated user: store in database
   const { data, error } = await (supabase as any)
     .from('logs')
     .insert({
